@@ -8,7 +8,7 @@ const ProductCard = ({ product, onBuy, purchasing }) => {
   return (
     <div className="glass-card overflow-hidden group hover:border-brand-600/40 hover:shadow-glow transition-all duration-300 flex flex-col animate-fade-in">
       {/* Cover Image */}
-      <div className="relative h-48 overflow-hidden bg-dark-700">
+      <div className="relative overflow-hidden bg-dark-700 aspect-[3/4]">
         {coverUrl ? (
           <img
             src={coverUrl}
