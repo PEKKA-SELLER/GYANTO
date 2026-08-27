@@ -22,12 +22,15 @@ const ProductDetail = () => {
   const navigate = useNavigate()
 
   const [product, setProduct] = useState(null)
-  const [purchased, setPurchased] = useState(false)
+  const [purchased, setPurchased] = useState(() => !!localStorage.getItem(`dl_token_${id}`))
   const [loading, setLoading] = useState(true)
   const [purchasing, setPurchasing] = useState(false)
   const [downloading, setDownloading] = useState(false)
   const [showModal, setShowModal] = useState(false)
-  const [downloadToken, setDownloadToken] = useState(null)
+  const [downloadToken, setDownloadToken] = useState(() => 
+    localStorage.getItem(`dl_token_${id}`) || null
+  )
+  const [purchased, setPurchased] = useState(() => !!localStorage.getItem(`dl_token_${id}`))
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,7 +70,9 @@ const ProductDetail = () => {
         guestEmail,
       })
       if (res.data.free) {
-        setDownloadToken(res.data.downloadToken)
+        const token = res.data.downloadToken
+        localStorage.setItem(`dl_token_${id}`, token)
+        setDownloadToken(token)
         setPurchased(true)
         return toast.success('Free product unlocked!')
       }
@@ -90,7 +95,9 @@ const ProductDetail = () => {
               guestName,
               guestEmail,
             })
-            setDownloadToken(verifyRes.data.downloadToken)
+            const token = verifyRes.data.downloadToken
+            localStorage.setItem(`dl_token_${id}`, token)
+            setDownloadToken(token)
             setPurchased(true)
             toast.success('Payment successful! 🎉')
           } catch {
@@ -111,10 +118,10 @@ const ProductDetail = () => {
   const handleDownload = async () => {
     setDownloading(true)
     try {
-      const downloadUrl = downloadToken
-        ? `/api/download/${id}?token=${downloadToken}`
-        : `/api/download/${id}`
-      const res = await api.get(downloadUrl, { responseType: 'blob' })
+      const dlPath = downloadToken
+        ? `/download/${id}?token=${downloadToken}`
+        : `/download/${id}`
+      const res = await api.get(dlPath, { responseType: 'blob' })
       const url = window.URL.createObjectURL(new Blob([res.data]))
       const link = document.createElement('a')
       link.href = url
