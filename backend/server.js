@@ -12,7 +12,18 @@ const downloadRoutes = require('./routes/downloadRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 
 // Connect to MongoDB
-connectDB();
+connectDB().then(async () => {
+  if (process.env.SEED_ON_START === 'true') {
+    const bcrypt = require('bcryptjs')
+    const User = require('./models/User')
+    const existing = await User.findOne({ email: process.env.ADMIN_EMAIL })
+    if (!existing) {
+      const hashed = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12)
+      await User.create({ name: process.env.ADMIN_NAME, email: process.env.ADMIN_EMAIL, password: hashed, role: 'admin' })
+      console.log('✅ Admin created:', process.env.ADMIN_EMAIL)
+    }
+  }
+})
 
 const app = express();
 
