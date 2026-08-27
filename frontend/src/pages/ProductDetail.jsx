@@ -118,15 +118,8 @@ const ProductDetail = () => {
       const dlPath = downloadToken
         ? `/download/${id}?token=${downloadToken}`
         : `/download/${id}`
-      const res = await api.get(dlPath, { responseType: 'blob' })
-      const url = window.URL.createObjectURL(new Blob([res.data]))
-      const link = document.createElement('a')
-      link.href = url
-      link.setAttribute('download', `${product.title}.pdf`)
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-      window.URL.revokeObjectURL(url)
+      // Open in new tab - backend will redirect to Cloudinary URL
+      window.open(`https://gyanto-backend.onrender.com/api${dlPath}`, '_blank')
       toast.success('Download started!')
     } catch {
       toast.error('Download failed. Please try again.')

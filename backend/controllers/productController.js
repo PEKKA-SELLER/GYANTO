@@ -1,6 +1,5 @@
-const path = require('path');
 const Product = require('../models/Product');
-const Purchase = require('../models/Purchase');
+const { uploadToCloudinary } = require('../middleware/uploadMiddleware');
 
 // @route   GET /api/products
 // @access  Public
@@ -18,11 +17,7 @@ const getAllProducts = async (req, res) => {
 const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id).select('-pdfFile');
-    if (!product) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'Product not found.' });
-    }
+    if (!product) return res.status(404).json({ success: false, message: 'Product not found.' });
     res.status(200).json({ success: true, product });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error.' });
@@ -36,29 +31,36 @@ const createProduct = async (req, res) => {
     const { title, description, price, isFree } = req.body;
 
     if (!title || !description || price === undefined) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Title, description, and price are required.' });
+      return res.status(400).json({ success: false, message: 'Title, description, and price are required.' });
     }
-
     if (!req.files || !req.files.pdfFile) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'PDF file is required.' });
+      return res.status(400).json({ success: false, message: 'PDF file is required.' });
     }
 
-    const pdfPath = `/uploads/pdfs/${req.files.pdfFile[0].filename}`;
-    const coverPath = req.files.coverImage
-      ? `/uploads/covers/${req.files.coverImage[0].filename}`
-      : '';
+    // Upload PDF to Cloudinary
+    const pdfResult = await uploadToCloudinary(req.files.pdfFile[0].buffer, {
+      folder: 'helpdost/pdfs',
+      resource_type: 'raw',
+      public_id: `pdf-${Date.now()}`,
+    });
+
+    // Upload cover image to Cloudinary (if provided)
+    let coverUrl = '';
+    if (req.files.coverImage) {
+      const coverResult = await uploadToCloudinary(req.files.coverImage[0].buffer, {
+        folder: 'helpdost/covers',
+        resource_type: 'image',
+      });
+      coverUrl = coverResult.secure_url;
+    }
 
     const product = await Product.create({
       title,
       description,
       price: Number(price),
       isFree: isFree === 'true' || Number(price) === 0,
-      coverImage: coverPath,
-      pdfFile: pdfPath,
+      coverImage: coverUrl,
+      pdfFile: pdfResult.secure_url,
       createdBy: req.user._id,
     });
 
@@ -74,11 +76,7 @@ const createProduct = async (req, res) => {
 const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
-    if (!product) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'Product not found.' });
-    }
+    if (!product) return res.status(404).json({ success: false, message: 'Product not found.' });
     res.status(200).json({ success: true, message: 'Product deleted.' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error.' });
@@ -96,10 +94,4 @@ const getAllProductsAdmin = async (req, res) => {
   }
 };
 
-module.exports = {
-  getAllProducts,
-  getProductById,
-  createProduct,
-  deleteProduct,
-  getAllProductsAdmin,
-};
+module.exports = { getAllProducts, getProductById, createProduct, deleteProduct, getAllProductsAdmin };

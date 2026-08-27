@@ -32,34 +32,12 @@ const downloadPdf = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Access denied. Please purchase this product first.' });
     }
 
-    // Resolve file path on disk
-    const relPath = product.pdfFile; // e.g. "/uploads/pdfs/pdf-xxx.pdf"
-    const absolutePath = path.join(__dirname, '..', relPath);
-
-    if (!fs.existsSync(absolutePath)) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'PDF file not found on server.' });
+    // pdfFile is now a Cloudinary URL - redirect to it
+    if (!product.pdfFile) {
+      return res.status(404).json({ success: false, message: 'PDF file not found.' });
     }
 
-    // Set headers for file download
-    const filename = `${product.title.replace(/[^a-z0-9]/gi, '_')}.pdf`;
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="${filename}"`
-    );
-
-    // Stream the file
-    const fileStream = fs.createReadStream(absolutePath);
-    fileStream.pipe(res);
-
-    fileStream.on('error', (err) => {
-      console.error('File stream error:', err);
-      if (!res.headersSent) {
-        res.status(500).json({ success: false, message: 'Error streaming file.' });
-      }
-    });
+    return res.redirect(product.pdfFile);
   } catch (error) {
     console.error('Download error:', error);
     res.status(500).json({ success: false, message: 'Server error.' });
