@@ -22,15 +22,12 @@ const ProductDetail = () => {
   const navigate = useNavigate()
 
   const [product, setProduct] = useState(null)
+  const [downloadToken, setDownloadToken] = useState(() => localStorage.getItem(`dl_token_${id}`) || null)
   const [purchased, setPurchased] = useState(() => !!localStorage.getItem(`dl_token_${id}`))
   const [loading, setLoading] = useState(true)
   const [purchasing, setPurchasing] = useState(false)
   const [downloading, setDownloading] = useState(false)
   const [showModal, setShowModal] = useState(false)
-  const [downloadToken, setDownloadToken] = useState(() => 
-    localStorage.getItem(`dl_token_${id}`) || null
-  )
-  const [purchased, setPurchased] = useState(() => !!localStorage.getItem(`dl_token_${id}`))
 
   useEffect(() => {
     const fetchData = async () => {
