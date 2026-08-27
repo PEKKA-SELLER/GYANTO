@@ -68,8 +68,10 @@ const Home = () => {
               guestName,
               guestEmail,
             })
+            const token = verifyRes.data.downloadToken
+            localStorage.setItem(`dl_token_${product._id}`, token)
             toast.success('🎉 Payment successful!')
-            navigate(`/product/${product._id}?token=${verifyRes.data.downloadToken}`)
+            navigate(`/product/${product._id}`)
           } catch (err) {
             toast.error(err.response?.data?.message || 'Payment verification failed.')
           }

@@ -29,6 +29,11 @@ const ProductDetail = () => {
   const [downloading, setDownloading] = useState(false)
   const [showModal, setShowModal] = useState(false)
 
+  // Sync purchased with downloadToken
+  useEffect(() => {
+    if (downloadToken) setPurchased(true)
+  }, [downloadToken])
+
   useEffect(() => {
     const fetchData = async () => {
       try {
