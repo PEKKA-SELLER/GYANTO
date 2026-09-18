@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from '../api/axios'
 import ProductCard from '../components/ProductCard'
-import Loader from '../components/Loader'
+import { ProductCardSkeleton } from '../components/Skeleton'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
@@ -155,7 +155,9 @@ const Home = () => {
 
       {/* Products grid */}
       {loading ? (
-        <Loader size="lg" text="Loading products..." />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => <ProductCardSkeleton key={i} />)}
+        </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">
           <svg className="w-16 h-16 text-white/20 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
-import Loader from '../components/Loader'
+import { ProductDetailSkeleton } from '../components/Skeleton'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 import GuestCheckoutModal from '../components/GuestCheckoutModal'
@@ -133,7 +133,7 @@ const ProductDetail = () => {
     }
   }
 
-  if (loading) return <Loader size="lg" />
+  if (loading) return <ProductDetailSkeleton />
   if (!product) return null
 
   return (
