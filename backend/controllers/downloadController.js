@@ -32,12 +32,14 @@ const downloadPdf = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Access denied. Please purchase this product first.' });
     }
 
-    // Return secure Cloudinary URL to frontend
     if (!product.pdfFile) {
       return res.status(404).json({ success: false, message: 'PDF file not found.' });
     }
 
-    return res.status(200).json({ success: true, url: product.pdfFile });
+    // Add fl_attachment to force proper PDF download on mobile
+    const pdfUrl = product.pdfFile.replace('/upload/', '/upload/fl_attachment/')
+
+    return res.status(200).json({ success: true, url: pdfUrl });
   } catch (error) {
     console.error('Download error:', error);
     res.status(500).json({ success: false, message: 'Server error.' });
