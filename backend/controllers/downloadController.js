@@ -36,14 +36,7 @@ const downloadPdf = async (req, res) => {
       return res.status(404).json({ success: false, message: 'PDF file not found.' });
     }
 
-    let url = product.pdfFile;
-    if (url.includes('cloudinary.com') && url.includes('/upload/')) {
-      // Force Cloudinary to serve the file as an attachment with a .pdf extension
-      const safeTitle = product.title.replace(/[^a-zA-Z0-9_-]/g, '_');
-      url = url.replace('/upload/', `/upload/fl_attachment:${safeTitle}.pdf/`);
-    }
-
-    return res.status(200).json({ success: true, url });
+    return res.status(200).json({ success: true, url: product.pdfFile });
   } catch (error) {
     console.error('Download error:', error);
     res.status(500).json({ success: false, message: 'Server error.' });
