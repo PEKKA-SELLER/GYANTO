@@ -41,7 +41,7 @@ const createProduct = async (req, res) => {
     const pdfResult = await uploadToCloudinary(req.files.pdfFile[0].buffer, {
       folder: 'helpdost/pdfs',
       resource_type: 'raw',
-      public_id: `pdf-${Date.now()}`,
+      public_id: `pdf-${Date.now()}.pdf`,
       quality: 'auto',
     });
 
