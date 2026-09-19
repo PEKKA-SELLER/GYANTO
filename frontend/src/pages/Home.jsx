@@ -48,7 +48,12 @@ const Home = () => {
     try {
       const res = await api.post('/payment/create-order', { productId: product._id, guestName, guestEmail })
       if (res.data.free) {
+        const token = res.data.downloadToken
+        if (token) {
+          localStorage.setItem(`dl_token_${product._id}`, token)
+        }
         toast.success('🎉 Free product unlocked!')
+        navigate(`/product/${product._id}`)
         return
       }
       const loaded = await loadRazorpay()
