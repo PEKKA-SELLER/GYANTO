@@ -123,19 +123,29 @@ const ProductDetail = () => {
       const dlPath = downloadToken
         ? `/download/${id}?token=${downloadToken}`
         : `/download/${id}`
-      const res = await api.get(dlPath)
-      if (res.data.url) {
-        const a = document.createElement('a')
-        a.href = res.data.url
-        a.target = '_blank'
-        a.rel = 'noopener noreferrer'
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        toast.success('PDF download ho rahi hai! 📄')
+      
+      const res = await api.get(dlPath, { responseType: 'blob' })
+      
+      // If server returned JSON error disguised as blob
+      if (res.data.type === 'application/json') {
+        const text = await res.data.text()
+        const json = JSON.parse(text)
+        throw new Error(json.message || 'Download failed')
       }
-    } catch {
-      toast.error('Download failed. Please try again.')
+
+      const blobUrl = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+      const a = document.createElement('a')
+      a.href = blobUrl
+      a.download = `${product.title || 'ebook'}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000)
+      
+      toast.success('PDF download ho rahi hai! 📄')
+    } catch (err) {
+      console.error('Download error:', err)
+      toast.error(err.message || 'Download failed. Please try again.')
     } finally {
       setDownloading(false)
     }

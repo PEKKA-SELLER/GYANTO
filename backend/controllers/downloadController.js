@@ -36,16 +36,43 @@ const downloadPdf = async (req, res) => {
       return res.status(404).json({ success: false, message: 'PDF file not found.' });
     }
 
-    // Fix URL + force download on mobile with fl_attachment
-    let pdfUrl = product.pdfFile.includes('/image/upload/')
-      ? product.pdfFile.replace('/image/upload/', '/raw/upload/')
-      : product.pdfFile
-    pdfUrl = pdfUrl.replace('/raw/upload/', '/raw/upload/fl_attachment/')
+    // Stream the file directly through the backend so the browser downloads it with exact filename & headers
+    const https = require('https');
+    const http = require('http');
 
-    return res.status(200).json({ success: true, url: pdfUrl });
+    const cleanFilename = `${(product.title || 'ebook').replace(/[^a-zA-Z0-9_\-\s]/g, '').trim().replace(/\s+/g, '_')}.pdf`;
+    
+    res.setHeader('Content-Disposition', `attachment; filename="${cleanFilename}"`);
+    res.setHeader('Content-Type', 'application/pdf');
+
+    const client = product.pdfFile.startsWith('https') ? https : http;
+    client.get(product.pdfFile, (streamRes) => {
+      // If Cloudinary redirected or failed
+      if (streamRes.statusCode >= 300 && streamRes.statusCode < 400 && streamRes.headers.location) {
+        const redirectClient = streamRes.headers.location.startsWith('https') ? https : http;
+        redirectClient.get(streamRes.headers.location, (finalRes) => {
+          finalRes.pipe(res);
+        }).on('error', () => {
+          if (!res.headersSent) res.redirect(product.pdfFile);
+        });
+        return;
+      }
+
+      if (streamRes.statusCode !== 200) {
+        // Fallback to direct redirect if status not 200
+        return res.redirect(product.pdfFile);
+      }
+
+      streamRes.pipe(res);
+    }).on('error', (err) => {
+      console.error('Stream error:', err);
+      if (!res.headersSent) res.redirect(product.pdfFile);
+    });
   } catch (error) {
     console.error('Download error:', error);
-    res.status(500).json({ success: false, message: 'Server error.' });
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: 'Server error.' });
+    }
   }
 };
 
