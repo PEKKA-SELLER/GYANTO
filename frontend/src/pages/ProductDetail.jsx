@@ -125,8 +125,14 @@ const ProductDetail = () => {
         : `/download/${id}`
       const res = await api.get(dlPath)
       if (res.data.url) {
-        window.open(res.data.url, '_blank')
-        toast.success('PDF opened! Save it from your browser. 📄')
+        const a = document.createElement('a')
+        a.href = res.data.url
+        a.target = '_blank'
+        a.rel = 'noopener noreferrer'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        toast.success('PDF download ho rahi hai! 📄')
       }
     } catch {
       toast.error('Download failed. Please try again.')
