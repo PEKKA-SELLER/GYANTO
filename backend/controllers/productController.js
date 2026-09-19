@@ -37,12 +37,11 @@ const createProduct = async (req, res) => {
       return res.status(400).json({ success: false, message: 'PDF file is required.' });
     }
 
-    // Upload PDF to Cloudinary with compression
+    // Upload PDF to Cloudinary as image to bypass raw PDF delivery restrictions
     const pdfResult = await uploadToCloudinary(req.files.pdfFile[0].buffer, {
       folder: 'helpdost/pdfs',
-      resource_type: 'raw',
-      public_id: `pdf-${Date.now()}.pdf`,
-      quality: 'auto',
+      resource_type: 'image',
+      public_id: `pdf-${Date.now()}`,
     });
 
     // Upload cover image to Cloudinary (if provided)

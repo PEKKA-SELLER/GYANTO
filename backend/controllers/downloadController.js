@@ -36,7 +36,15 @@ const downloadPdf = async (req, res) => {
       return res.status(404).json({ success: false, message: 'PDF file not found.' });
     }
 
-    return res.status(200).json({ success: true, url: product.pdfFile });
+    let url = product.pdfFile;
+    if (url.includes('cloudinary.com') && url.includes('image/upload/')) {
+      // Force Cloudinary to serve the file as an attachment with a .pdf extension
+      // This only works for image resources, not raw resources
+      const safeTitle = product.title.replace(/[^a-zA-Z0-9_-]/g, '_');
+      url = url.replace('image/upload/', `image/upload/fl_attachment:${safeTitle}.pdf/`);
+    }
+
+    return res.status(200).json({ success: true, url });
   } catch (error) {
     console.error('Download error:', error);
     res.status(500).json({ success: false, message: 'Server error.' });
