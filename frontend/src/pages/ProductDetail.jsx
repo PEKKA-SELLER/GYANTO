@@ -123,9 +123,11 @@ const ProductDetail = () => {
       const dlPath = downloadToken
         ? `/download/${id}?token=${downloadToken}`
         : `/download/${id}`
-      // Open in new tab - backend will redirect to Cloudinary URL
-      window.open(`https://gyanto-backend.onrender.com/api${dlPath}`, '_blank')
-      toast.success('Download started!')
+      const res = await api.get(dlPath)
+      if (res.data.url) {
+        window.open(res.data.url, '_blank')
+        toast.success('PDF opened! Save it from your browser. 📄')
+      }
     } catch {
       toast.error('Download failed. Please try again.')
     } finally {

@@ -32,12 +32,12 @@ const downloadPdf = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Access denied. Please purchase this product first.' });
     }
 
-    // pdfFile is now a Cloudinary URL - redirect to it
+    // Return secure Cloudinary URL to frontend
     if (!product.pdfFile) {
       return res.status(404).json({ success: false, message: 'PDF file not found.' });
     }
 
-    return res.redirect(product.pdfFile);
+    return res.status(200).json({ success: true, url: product.pdfFile });
   } catch (error) {
     console.error('Download error:', error);
     res.status(500).json({ success: false, message: 'Server error.' });
