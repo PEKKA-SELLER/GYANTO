@@ -36,12 +36,7 @@ const downloadPdf = async (req, res) => {
       return res.status(404).json({ success: false, message: 'PDF file not found.' });
     }
 
-    // Fix URL for mobile: raw -> image, add fl_attachment for proper PDF download
-    const pdfUrl = product.pdfFile
-      .replace('/raw/upload/', '/image/upload/')
-      .replace('/upload/', '/upload/fl_attachment/')
-
-    return res.status(200).json({ success: true, url: pdfUrl });
+    return res.status(200).json({ success: true, url: product.pdfFile });
   } catch (error) {
     console.error('Download error:', error);
     res.status(500).json({ success: false, message: 'Server error.' });
