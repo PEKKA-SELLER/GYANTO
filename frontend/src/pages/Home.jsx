@@ -20,18 +20,61 @@ const loadRazorpay = () =>
 const Home = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [products, setProducts] = useState(() => {
+    try {
+      const cached = localStorage.getItem('cached_products')
+      return cached ? JSON.parse(cached) : []
+    } catch {
+      return []
+    }
+  })
+  const [loading, setLoading] = useState(() => {
+    try {
+      const cached = localStorage.getItem('cached_products')
+      return !cached || JSON.parse(cached).length === 0
+    } catch {
+      return true
+    }
+  })
+  const [isWakingUp, setIsWakingUp] = useState(false)
   const [purchasing, setPurchasing] = useState(null)
   const [search, setSearch] = useState('')
   const [modalProduct, setModalProduct] = useState(null)
 
   useEffect(() => {
+    let wakeTimer = null
+    if (loading) {
+      wakeTimer = setTimeout(() => {
+        setIsWakingUp(true)
+      }, 3500)
+    }
+
     api
       .get('/products')
-      .then((res) => setProducts(res.data.products))
-      .catch(() => toast.error('Failed to load products'))
-      .finally(() => setLoading(false))
+      .then((res) => {
+        if (res.data?.products) {
+          setProducts(res.data.products)
+          try {
+            localStorage.setItem('cached_products', JSON.stringify(res.data.products))
+          } catch (e) {
+            console.warn('Failed to cache products', e)
+          }
+        }
+      })
+      .catch(() => {
+        if (!products.length) {
+          toast.error('Failed to load products')
+        }
+      })
+      .finally(() => {
+        setLoading(false)
+        setIsWakingUp(false)
+        if (wakeTimer) clearTimeout(wakeTimer)
+      })
+
+    return () => {
+      if (wakeTimer) clearTimeout(wakeTimer)
+    }
   }, [])
 
   const handleBuy = (product) => {
@@ -160,8 +203,18 @@ const Home = () => {
 
       {/* Products grid */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => <ProductCardSkeleton key={i} />)}
+        <div className="space-y-6">
+          {isWakingUp && (
+            <div className="flex items-center justify-center gap-3 p-4 rounded-xl bg-brand-900/30 border border-brand-500/30 text-brand-200 text-sm animate-fade-in text-center max-w-lg mx-auto">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+              <span>
+                Backend server is waking up... Ebooks will appear in a moment!
+              </span>
+            </div>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => <ProductCardSkeleton key={i} />)}
+          </div>
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">

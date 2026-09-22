@@ -68,6 +68,9 @@ const AdminPanel = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       toast.success('Product created successfully! 🎉')
+      try {
+        localStorage.removeItem('cached_products')
+      } catch {}
       resetForm()
       fetchProducts()
     } catch (err) {
@@ -83,6 +86,9 @@ const AdminPanel = () => {
     try {
       await api.delete(`/admin/products/${id}`)
       toast.success('Product deleted.')
+      try {
+        localStorage.removeItem('cached_products')
+      } catch {}
       setProducts((prev) => prev.filter((p) => p._id !== id))
     } catch {
       toast.error('Failed to delete product.')

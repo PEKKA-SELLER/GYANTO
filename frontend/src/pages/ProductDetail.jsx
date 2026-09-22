@@ -21,10 +21,32 @@ const ProductDetail = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
 
-  const [product, setProduct] = useState(null)
+  const [product, setProduct] = useState(() => {
+    try {
+      const cached = localStorage.getItem('cached_products')
+      if (cached) {
+        const list = JSON.parse(cached)
+        return list.find((p) => p._id === id) || null
+      }
+    } catch {
+      return null
+    }
+    return null
+  })
   const [downloadToken, setDownloadToken] = useState(() => localStorage.getItem(`dl_token_${id}`) || null)
   const [purchased, setPurchased] = useState(() => !!localStorage.getItem(`dl_token_${id}`))
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(() => {
+    try {
+      const cached = localStorage.getItem('cached_products')
+      if (cached) {
+        const list = JSON.parse(cached)
+        return !list.some((p) => p._id === id)
+      }
+    } catch {
+      return true
+    }
+    return true
+  })
   const [purchasing, setPurchasing] = useState(false)
   const [downloading, setDownloading] = useState(false)
   const [showModal, setShowModal] = useState(false)
